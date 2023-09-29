@@ -10,11 +10,13 @@ import {
 import { useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useForm, Controller, FormProvider } from 'react-hook-form';
-import axios from 'axios';
 
 import CustomInput from '../../componets/CustomInput';
 import CustomButton from '../../componets/CustomButton';
 import { createUserWithEmailAndPassword, getAuth } from 'firebase/auth';
+
+import { db } from '../../firebase';
+import { addDoc, collection, setDoc } from 'firebase/firestore';
 
 const COLORS = {
   primary: '#7f44d4',
@@ -38,6 +40,7 @@ const SignUp = ({ history }) => {
   const pwd = watch('password');
 
   const navigation = useNavigation();
+  let userId = 0;
 
   const onSignInPressed = (data) => {
     navigation.navigate('SignIn');

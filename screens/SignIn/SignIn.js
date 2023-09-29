@@ -13,11 +13,14 @@ import { useState, useContext, useEffect } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useForm, Controller, FormProvider } from 'react-hook-form';
 import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
-import Logo from '../../assets/images/logo.png';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '../../firebase.js';
+import Logo from '../../assets/images/logo2.png';
 import CustomInput from '../../componets/CustomInput';
 import CustomButton from '../../componets/CustomButton';
 
 const { width, height } = Dimensions.get('window');
+let userId = 0;
 
 const SignIn = () => {
   const auth = getAuth();
@@ -32,27 +35,33 @@ const SignIn = () => {
 
   const onSignInPressed = async ({ email, password }) => {
     try {
-      const respone = await signInWithEmailAndPassword(
-        auth,
-        email,
-        password
-      ).catch((error) => {
-        //console.log(error);
+      const respone = await signInWithEmailAndPassword(auth, email, password)
+        //
+        .catch((error) => {
+          console.log(error);
 
-        switch (error.code) {
-          case 'auth/wrong-password':
-            alert('Please enter correct password !');
-            break;
+          switch (error.code) {
+            case 'auth/wrong-password':
+              alert('Please enter correct password !');
+              break;
 
-          case 'auth/too-many-requests':
-            alert('Please restore your password or try again letter');
-            break;
+            case 'auth/invalid-email':
+              alert('Please enter Valid Email!');
+              break;
 
-          case 'auth/user-not-found':
-            alert('Please enter correct email !');
-            break;
-        }
-      });
+            case 'auth/too-many-requests':
+              alert('Please restore your password or try again letter');
+              break;
+
+            case 'auth/user-not-found':
+              alert('Please enter correct email !');
+              break;
+
+            default:
+              alert('Error!');
+              break;
+          }
+        });
     } catch (error) {
       alert(error);
     }

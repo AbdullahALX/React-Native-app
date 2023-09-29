@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Text,
   SafeAreaView,
@@ -22,6 +22,20 @@ import CustomEventInput from '../componets/CustomEventInput';
 import CustomButton from '../componets/CustomButton';
 import DateTime from '../componets/DateTime';
 
+import { getAuth } from 'firebase/auth';
+import {
+  doc,
+  getDoc,
+  updateDocm,
+  collection,
+  getDocs,
+  addDoc,
+  setDoc,
+  updateDoc,
+  arrayUnion,
+} from 'firebase/firestore';
+import { db } from '../firebase';
+
 const COLORS = {
   main: '#4526a5',
   primary: '#7f44d4',
@@ -39,10 +53,96 @@ const Post = () => {
     handleSubmit,
     formState: { errors },
     watch,
+    reset,
   } = useForm();
-  const onPostPressed = (data) => {
-    console.log(data);
+
+  const [childId, setChildId] = useState();
+
+  let [count, setCount] = useState(1);
+
+  const CreateUser = async (props) => {
+    const currentEventData = props.data;
+    console.log(currentEventData);
+    const auth = getAuth();
+    const userId = auth.currentUser.uid;
+    //console.log(userId);
+
+    const account = {
+      Events0: {
+        EventDescription: currentEventData.EventDescription || '',
+        dateTime: currentEventData.dateTime || '',
+        invitees: currentEventData.invitees || '',
+        title: currentEventData.title || '',
+      },
+
+      eventLength: 0,
+    };
+    const userRef = doc(db, 'UsersData', userId);
+    const res = await setDoc(userRef, account);
+    console.log('createeee');
+    setCount(1);
   };
+
+  const addData = async (props) => {
+    const currentEventData = props.data;
+    const auth = getAuth();
+    const userId = auth.currentUser.uid;
+    console.log(currentEventData);
+
+    const account = {
+      ['event' + count]: {
+        EventDescription: currentEventData.EventDescription || '',
+        dateTime: currentEventData.dateTime || '',
+        invitees: currentEventData.invitees || '',
+        title: currentEventData.title || '',
+      },
+      eventLength: count,
+    };
+    // console.log(account);
+
+    const userRef = doc(db, 'UsersData', userId);
+    await updateDoc(userRef, account);
+
+    // const res = await setDoc(userRef, account);
+  };
+  useEffect(() => {
+    async function fetchLen() {
+      let reslen = 0;
+      const auth = getAuth();
+      const userId = auth.currentUser.uid;
+      const userRef = doc(db, 'UsersData', userId);
+
+      const docSnap = await getDoc(userRef);
+      if (docSnap.exists()) {
+        reslen = docSnap.data().eventLength;
+      }
+
+      setCount(reslen);
+    }
+    fetchLen();
+  }, []);
+
+  async function onPostPressed(data) {
+    const auth = getAuth();
+    const userId = auth.currentUser.uid;
+    const userRef = doc(db, 'UsersData', userId);
+
+    const docSnap = await getDoc(userRef);
+    if (docSnap.exists()) {
+      const reslen = await docSnap.data().eventLength;
+
+      setCount(count + 1);
+
+      addData((data = { data }));
+      //console.log('Document data:', docSnap.data());
+    } else {
+      // docSnap.data() will be undefined in this case
+      CreateUser((data = { data }));
+      console.log('No such document!');
+    }
+    reset({ ...data });
+  }
+
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
       <View style={styles.topContainer}>
@@ -80,7 +180,7 @@ const Post = () => {
             multiline={true}
             type={'textInvitees'}
           />
-          <DateTime control={control} watch={watch} name="date" />
+          <DateTime control={control} watch={watch} name="date" count={count} />
           <View style={{ alignItems: 'center' }}>
             <CustomButton
               type="POST"

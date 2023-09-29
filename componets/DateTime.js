@@ -15,6 +15,10 @@ import CustomEventInput from '../componets/CustomEventInput';
 import DatePicker from 'react-native-modern-datepicker';
 import { getFormatedDate } from 'react-native-modern-datepicker';
 
+import { getAuth } from 'firebase/auth';
+import { doc, updateDoc, addDoc } from 'firebase/firestore';
+import { db } from '../firebase';
+
 const COLORS = {
   main: '#4526a5',
   primary: '#7f44d4',
@@ -24,7 +28,7 @@ const COLORS = {
   temp: '#82799f',
 };
 const { width, height } = Dimensions.get('window');
-const DateTime = ({ watch, name, control }) => {
+const DateTime = ({ watch, name, control, props }) => {
   const { handleSubmit } = useForm();
   const today = new Date('slectedStartdDate');
 
@@ -34,22 +38,42 @@ const DateTime = ({ watch, name, control }) => {
   );
   const [slectedStartdDate, setSlectedStartdDate] = useState('YYYY/MM/DD h:m');
   const [startedDate, setStartedDate] = useState('12/12/2023');
+  const [dateTimeLast, setDateTimeLast] = useState({
+    time: '',
+    date: '',
+  });
 
   const [openCalender, setOpenCalender] = useState(false);
 
   function handleChangeStartDate(date) {
-    setStartedDate(date);
+    setDateTimeLast((prevState) => ({
+      ...prevState,
+      date: date,
+    }));
 
-    console.log(date);
+    setStartedDate(date);
   }
 
   function handleChangeTime(time) {
-    console.log(time);
+    setDateTimeLast((prevState) => ({
+      ...prevState,
+      time: time,
+    }));
   }
 
   const handleOpenCalender = () => {
     setOpenCalender(!openCalender);
   };
+  async function handleAddDate() {
+    //console.log(props.count);
+    // const auth = getAuth();
+    // const userId = auth.currentUser.uid;
+    // //console.log(data);
+    // const ref = doc(db, 'Events', userId);
+    // await updateDoc(ref, 'Event.' + 2, {
+    //   dateTime: dateTimeLast,
+    // });
+  }
 
   return (
     <SafeAreaView
@@ -75,7 +99,15 @@ const DateTime = ({ watch, name, control }) => {
       </TouchableOpacity>
 
       <View>
-        <Modal animationType="slide" transparent={true} visible={openCalender}>
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={openCalender}
+          onDismiss={
+            handleAddDate
+            // () => console.log(dateTimeLast)
+          }
+        >
           <View
             style={{
               flex: 1,
@@ -88,6 +120,7 @@ const DateTime = ({ watch, name, control }) => {
                 selected={slectedStartdDate}
                 onDateChange={handleChangeStartDate}
                 onTimeChange={handleChangeTime}
+                //rules={{ required: 'Time is required' }}
                 onSelectedChange={(date) => {
                   setSlectedStartdDate(date);
                 }}
