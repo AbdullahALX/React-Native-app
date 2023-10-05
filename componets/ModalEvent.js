@@ -59,15 +59,17 @@ const ModalEvent = (props) => {
           </View>
 
           <Text style={styles.desTitle}>Invitees</Text>
-          <View style={{ width: '90%', paddingBottom: 60 }}>
+          <View style={{ width: '90%', paddingBottom: 10 }}>
             <Text adjustsFontSizeToFit style={styles.desText}>
               {props.invitees}
             </Text>
           </View>
           <Text style={styles.desTitle}>Date & time</Text>
-          <View style={{ width: '90%', paddingBottom: 60 }}>
+          <View style={{ width: '90%', paddingBottom: 50 }}>
             <Text adjustsFontSizeToFit style={styles.desText}>
-              {props.dataOnly} {props.timeOnly}
+              {'- ' + props.date}
+              {'\n'}
+              {'- ' + props.time}
             </Text>
           </View>
         </ScrollView>

@@ -1,4 +1,4 @@
-import { useState, Component } from 'react';
+import { useState, Component, useEffect } from 'react';
 import {
   ScrollView,
   View,
@@ -21,7 +21,10 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import ModalEvent from '../componets/ModalEvent';
-import { render } from 'react-dom';
+import { getAuth } from 'firebase/auth';
+import { doc, getDoc, updateDoc, deleteField, query } from 'firebase/firestore';
+import { db } from '../firebase';
+
 const COLORS = {
   primary: '#7f44d4',
   white: '#fff',
@@ -52,11 +55,18 @@ const monthNames = [
   'Dec',
 ];
 
-const ListItem = ({ event, onDismiss, simultaneousHandlers }) => {
+const ListItem = ({ event, onDismiss, simultaneousHandlers, allEvent }) => {
+  const [currentDate, setCurrentDate] = useState('');
   const [modalComponentVisibility, setModalComponentVisibility] =
     useState(false);
+  const [done, setDone] = useState(false);
+  const [dateSplit, setDateSplit] = useState('');
 
-  const dateSplit = event.date.split('/');
+  // useEffect(() => {
+  //   console.log(event.invitees);
+  // });
+
+  //const dateSplit = event.date.split('/');
 
   const translateX = useSharedValue(0);
   const itemHeight = useSharedValue(LIST_ITEM_HEIGHT);
@@ -116,15 +126,42 @@ const ListItem = ({ event, onDismiss, simultaneousHandlers }) => {
       this.lastTap = now;
     }
   };
+  useEffect(() => {
+    const temp = async () => {
+      const auth = getAuth();
+      const userId = auth.currentUser.uid;
+      const DateRef = doc(db, 'UsersData', userId + '-dateTime');
+      let dateArr = [];
+
+      const docRes = await getDoc(DateRef);
+
+      if (docRes.exists()) {
+        const resData = docRes.data();
+
+        Object.entries(resData).forEach(([key, value]) => {
+          dateArr[key] = value;
+        });
+
+        setCurrentDate(dateArr);
+
+        if (currentDate[event.id]) {
+          setDateSplit(currentDate[event.id].date.split('/'));
+        }
+      }
+      console.log(event.id);
+    };
+
+    temp();
+  }, [allEvent]);
 
   return (
     <Pressable onPress={DoubleTap}>
       {modalComponentVisibility && (
         <ModalEvent
-          description={event.description}
-          invitees={event.invitees.join(',  ')}
-          dataOnly={event.date}
-          timeOnly={event.time}
+          description={event.EventDescription}
+          invitees={event.invitees.split(', ').join(' ')}
+          date={currentDate[event.id] && currentDate[event.id].date}
+          time={currentDate[event.id] && currentDate[event.id].time}
         />
       )}
 
@@ -144,8 +181,8 @@ const ListItem = ({ event, onDismiss, simultaneousHandlers }) => {
           <Animated.View style={[styles.event, rStyle]}>
             <View style={styles.squareDate}>
               <Text
-                // adjustsFontSizeToFit={true}
-                // numberOfLines={2}
+                adjustsFontSizeToFit={true}
+                numberOfLines={2}
                 style={styles.DateText}
               >
                 <Text style={[styles.squareDate, styles.squareDateExstra]}>
@@ -221,7 +258,7 @@ const styles = StyleSheet.create({
     width: LIST_ITEM_HEIGHT - 30,
     height: LIST_ITEM_HEIGHT - 30,
     backgroundColor: COLORS.DateColor,
-    left: 15,
+    left: 13,
     borderRadius: 10,
     shadowOpacity: 0.15,
     shadowOffset: {

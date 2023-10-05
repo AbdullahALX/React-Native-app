@@ -7,6 +7,7 @@ import Notifications from '../screens/Notifications.js';
 import Profile from '../screens/Profile.js';
 import PostScreen from '../screens/PostScreen.js';
 import DateTime from '../componets/DateTime.js';
+import TempDate from '../componets/TempDate.js';
 
 const Tab = createBottomTabNavigator();
 const COLORS = {
@@ -27,9 +28,10 @@ function UserStack() {
           headerShown: false,
           tabBarStyle: {
             backgroundColor: '#433E3E',
-            backgroundColor: 'black',
+            backgroundColor: COLORS.white,
             elevation: 0,
-            height: 75,
+            height: 70,
+            paddingTop: 5,
             // borderTopLeftRadius: 15,
             // borderTopRightRadius: 15,
           },
@@ -54,7 +56,7 @@ function UserStack() {
                     height: 30,
                     width: 30,
                     marginBottom: 10,
-                    tintColor: focused ? COLORS.OnClickColor : COLORS.white,
+                    tintColor: focused ? COLORS.primary : COLORS.gray,
                   }}
                 />
               </View>
@@ -114,7 +116,7 @@ function UserStack() {
                     width: 34,
                     marginBottom: 10,
 
-                    tintColor: focused ? COLORS.OnClickColor : COLORS.white,
+                    tintColor: focused ? COLORS.primary : COLORS.gray,
                   }}
                 />
               </View>
@@ -141,7 +143,7 @@ function UserStack() {
                     height: 35,
                     width: 35,
                     marginBottom: 10,
-                    tintColor: focused ? COLORS.OnClickColor : COLORS.white,
+                    tintColor: focused ? COLORS.primary : COLORS.gray,
                   }}
                 />
               </View>

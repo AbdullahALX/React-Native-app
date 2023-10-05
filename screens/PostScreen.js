@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import {
   Text,
   SafeAreaView,
@@ -13,10 +13,10 @@ import {
   Modal,
 } from 'react-native';
 import { Keyboard } from 'react-native';
-import { useForm, Controller, FormProvider } from 'react-hook-form';
+import { useForm, Controller, FormProvider, set } from 'react-hook-form';
 import DatePicker from 'react-native-modern-datepicker';
 import { getFormatedDate } from 'react-native-modern-datepicker';
-
+import { useFocusEffect } from '@react-navigation/native';
 import ModalEvent from '../componets/ModalEvent';
 import CustomEventInput from '../componets/CustomEventInput';
 import CustomButton from '../componets/CustomButton';
@@ -58,43 +58,47 @@ const Post = () => {
 
   const [childId, setChildId] = useState();
 
-  let [count, setCount] = useState(1);
+  const [count, setCount] = useState(1);
 
   const CreateUser = async (props) => {
     const currentEventData = props.data;
-    console.log(currentEventData);
     const auth = getAuth();
     const userId = auth.currentUser.uid;
     //console.log(userId);
 
     const account = {
-      Events0: {
+      Events1: {
         EventDescription: currentEventData.EventDescription || '',
         dateTime: currentEventData.dateTime || '',
         invitees: currentEventData.invitees || '',
         title: currentEventData.title || '',
+        id: 1,
       },
 
-      eventLength: 0,
+      eventLength: 1,
     };
     const userRef = doc(db, 'UsersData', userId);
     const res = await setDoc(userRef, account);
     console.log('createeee');
-    setCount(1);
+    setCount(2);
   };
+
+  useEffect(() => {
+    fetchLen();
+  }, []);
 
   const addData = async (props) => {
     const currentEventData = props.data;
     const auth = getAuth();
     const userId = auth.currentUser.uid;
-    console.log(currentEventData);
 
     const account = {
-      ['event' + count]: {
+      ['Events' + count]: {
         EventDescription: currentEventData.EventDescription || '',
         dateTime: currentEventData.dateTime || '',
         invitees: currentEventData.invitees || '',
         title: currentEventData.title || '',
+        id: count,
       },
       eventLength: count,
     };
@@ -105,38 +109,37 @@ const Post = () => {
 
     // const res = await setDoc(userRef, account);
   };
-  useEffect(() => {
-    async function fetchLen() {
-      let reslen = 0;
-      const auth = getAuth();
-      const userId = auth.currentUser.uid;
-      const userRef = doc(db, 'UsersData', userId);
 
-      const docSnap = await getDoc(userRef);
-      if (docSnap.exists()) {
-        reslen = docSnap.data().eventLength;
-      }
-
-      setCount(reslen);
-    }
-    fetchLen();
-  }, []);
-
-  async function onPostPressed(data) {
+  async function fetchLen() {
+    let reslen = 0;
     const auth = getAuth();
     const userId = auth.currentUser.uid;
     const userRef = doc(db, 'UsersData', userId);
 
     const docSnap = await getDoc(userRef);
     if (docSnap.exists()) {
+      reslen = docSnap.data().eventLength;
+    }
+
+    setCount(reslen + 1);
+  }
+
+  async function onPostPressed(data) {
+    const auth = getAuth();
+    const userId = auth.currentUser.uid;
+    const userRef = doc(db, 'UsersData', userId);
+    //console.log(docSnap.data().eventLength);
+
+    const docSnap = await getDoc(userRef);
+    if (docSnap.exists() && docSnap.data().eventLength != 0) {
       const reslen = await docSnap.data().eventLength;
 
-      setCount(count + 1);
-
       addData((data = { data }));
+      setCount(count + 1);
       //console.log('Document data:', docSnap.data());
     } else {
       // docSnap.data() will be undefined in this case
+
       CreateUser((data = { data }));
       console.log('No such document!');
     }
@@ -181,6 +184,7 @@ const Post = () => {
             type={'textInvitees'}
           />
           <DateTime control={control} watch={watch} name="date" count={count} />
+
           <View style={{ alignItems: 'center' }}>
             <CustomButton
               type="POST"

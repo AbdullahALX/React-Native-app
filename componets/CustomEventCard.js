@@ -1,100 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import {
-  View,
-  StyleSheet,
-  Text,
-  Dimensions,
-  Image,
-  TouchableWithoutFeedback,
-} from 'react-native';
+import { View, StyleSheet, Text, Dimensions, Image } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import ListItem from './ListItem';
+import { useFocusEffect } from '@react-navigation/native';
 
 import { getAuth } from 'firebase/auth';
-import { doc, getDoc, getDocs } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, deleteField } from 'firebase/firestore';
 import { db } from '../firebase';
-
-export const EVENTS = [
-  {
-    title: 'QQQQQQTechXpo 2023: Unveiling the Future',
-    date: '2023/08/23',
-    time: '10:25',
-    description: 'TechXpo 2023: Unveiling the Future',
-    id: 0,
-    invitees: ['john1', 'john2', 'john3', 'john4', 'john5'],
-  },
-  // {
-  //   title: 'Gastronomy Fest: A Culinary Extravaganza',
-  //   description:
-  //     'e 2023: Unveiling the Future TechXpo 2023: Unveiling the Future TechXpo 2023: Unveiling the Future TechXpo 2023: Unveiling the ,TechXpo 2023: Unveiling the Future TechXpo 2023: Unveiling the Future TechXpo 2023: Unveiling the Future TechXpo 2023: Unveiling the Future,e 2023: Unveiling the Future TechXpo 2023: Unveiling the Future TechXpo 2023: Unveiling the Future TechXpo 2023: Unveiling the ,TechXpo 2023: Unveiling the Future TechXpo 2023: Unveiling the Future TechXpo 2023: Unveiling the Future TechXpo 2023: Unveiling the Futu',
-  //   date: '2023/02/04',
-  //   time: '20:00',
-  //   id: 1,
-  //   invitees: ['john1', 'john2', 'john3', 'john4', 'john5'],
-  // },
-  // {
-  //   title: 'Artisanal Crafts Fair: Celebrating Creativity',
-  //   description: 'TechXpo 2023: Unveiling the Future',
-  //   date: '2023/02/15',
-  //   id: 2,
-  //   invitees: ['john1', 'john2', 'john3', 'john4', 'john5'],
-  // },
-  // {
-  //   title: 'Global Sustainability Summit 2023',
-  //   description: 'TechXpo 2023: Unveiling the Future',
-  //   date: '2023/01/15',
-  //   id: 3,
-  //   invitees: ['john1', 'john2', 'john3', 'john4', 'john5'],
-  // },
-  // {
-  //   title: 'Global Sustainability Summit 2023',
-  //   date: '2023/12/07',
-  //   id: 4,
-  //   invitees: ['john1', 'john2', 'john3', 'john4', 'john5'],
-  // },
-  // {
-  //   title: 'Global Sustainability Summit 2023',
-  //   date: 'October,7,2023',
-  //   id: 5,
-  //   invitees: ['john1', 'john2', 'john3', 'john4', 'john5'],
-  // },
-  // {
-  //   title: 'Global Sustainability Summit 2023',
-  //   date: '2023/12/07',
-  //   id: 6,
-  //   invitees: ['john1', 'john2', 'john3', 'john4', 'john5'],
-  // },
-  // {
-  //   title: 'Global Sustainability Summit 2023',
-  //   date: '2023/12/07',
-  //   id: 7,
-  //   invitees: ['john1'],
-  // },
-  // {
-  //   title: 'Global Sustainability Summit 2023',
-  //   date: '2023/12/07',
-  //   id: 8,
-  //   invitees: [],
-  // },
-  // {
-  //   title: 'Global Sustainability Summit 2023',
-  //   date: '2023/12/07',
-  //   id: 9,
-  //   invitees: [],
-  // },
-  // {
-  //   title: 'Global Sustainability Summit 2023',
-  //   date: '2023/12/07',
-  //   id: 10,
-  //   invitees: [],
-  // },
-  // {
-  //   title: 'Global Sustainability Summit 2023',
-  //   date: '2023/12/07',
-  //   id: 11,
-  //   invitees: [],
-  // },
-];
 
 const { width, height } = Dimensions.get('window');
 const COLORS = {
@@ -106,8 +18,11 @@ const COLORS = {
 
 const CustomEventCard = () => {
   const [dataEvent, setDataEvent] = useState('');
+  const [done, setDone] = useState(false);
+  const [count, setCount] = useState(0);
 
   async function getUserData() {
+    let reArr = [];
     const auth = getAuth();
     const userId = auth.currentUser.uid;
     const userRef = doc(db, 'UsersData', userId);
@@ -116,30 +31,54 @@ const CustomEventCard = () => {
 
     if (docSnap.exists()) {
       const resData = docSnap.data();
-      setDataEvent(resData);
-      //eturn resData;
+
+      Object.entries(resData).forEach(([key, value]) => {
+        if (typeof value !== 'number') reArr.push(value);
+      });
+      reArr.sort(function (a, b) {
+        return a.id - b.id;
+      });
+      setDataEvent(reArr);
+
+      setDone(true);
     } else {
-      // docSnap.data() will be undefined in this case
       console.log('No such document!');
+      setDataEvent([]);
     }
   }
 
-  useEffect(() => {
-    (async () => {
+  useFocusEffect(
+    useCallback(() => {
       getUserData();
-    })();
-  }, []);
 
-  const [events, setEvent] = useState(EVENTS);
+      return () => {};
+    }, [done])
+  );
 
   const scrollRef = useRef(null);
-  const onDismiss = useCallback((event) => {
-    //const temp = events.filter((item) => item.id !== event.id);
-    // console.log(item.id);
-    console.log(dataEvent);
+  const onDismiss = useCallback(async (event) => {
+    const auth = getAuth();
+    const userId = auth.currentUser.uid;
+    const userRef = doc(db, 'UsersData', userId);
+    await updateDoc(userRef, {
+      ['Events' + event.id]: deleteField(),
+    });
+    //deleting dates and time
+    const DateRef = doc(db, 'UsersData', userId + '-dateTime');
+    const docRes = await getDoc(DateRef);
+    if (docRes.exists()) {
+      await updateDoc(DateRef, {
+        [event.id]: deleteField(),
+      });
+    }
 
-    setEvent((events) => events.filter((item) => item.id !== event.id));
-    console.log('done');
+    const docSnap = await getDoc(userRef);
+    console.log(docSnap.data().eventLength);
+    await updateDoc(userRef, {
+      eventLength: (docSnap.data().eventLength -= 1),
+    });
+
+    getUserData();
   }, []);
 
   return (
@@ -149,7 +88,7 @@ const CustomEventCard = () => {
       </View>
 
       <ScrollView style={{ flex: 1 }} ref={scrollRef}>
-        {events.length <= 0 ? (
+        {dataEvent.length - 1 < 0 ? (
           <View style={{ alignItems: 'center', justifyContent: 'center' }}>
             <Image
               source={require('../assets/images/empty3.png')}
@@ -162,8 +101,9 @@ const CustomEventCard = () => {
             ></Image>
           </View>
         ) : (
-          events.map((event) => (
+          dataEvent.map((event) => (
             <ListItem
+              allEvent={{ dataEvent }}
               key={event.id}
               event={event}
               onDismiss={onDismiss}
