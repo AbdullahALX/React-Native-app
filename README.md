@@ -1,6 +1,6 @@
 # TaskSwift Mobile App
 
-TaskSwift is a mobile application that allows users to efficiently manage their tasks and events. It is developed using HTML, CSS, JavaScript, and React Native, with Firebase integration for authentication and data storage. The application is designed to help users keep track of their tasks and events seamlessly.
+TaskSwift is a mobile application that allows users to efficiently manage their tasks and events. It is developed using JavaScript, and React Native, with Firebase integration for authentication and data storage. The application is designed to help users keep track of their tasks and events seamlessly.
 
 ## Features
 
@@ -43,7 +43,7 @@ TaskSwift is a mobile application that allows users to efficiently manage their 
 
 Make sure to have the necessary development environment set up for React Native.
 
-## Screenshots
+
 
 ## Contributing
 
@@ -67,12 +67,9 @@ Contributions are welcome! If you'd like to contribute to TaskSwift, please foll
 
 1.  Create a pull request to the main repository.
 
-## License
-
-This project is licensed under the [MIT License](LICENSE).
 
 ## Contact
 
-If you have any questions or need assistance, feel free to reach out to the project owner, Abdullah ALX, at [your@email.com].
+If you have any questions or need assistance, feel free to reach out to the project owner, Abdullah ALX, at [abdullah.alhinaey@gmail.com].
 
-Thank you for using TaskSwift! We hope it helps you manage your tasks and events more effectively.
+Thank you for using TaskSwift!
