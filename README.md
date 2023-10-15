@@ -11,12 +11,10 @@ TaskSwift is a mobile application that allows users to efficiently manage their 
 *   **Mark as Done:** Swipe left to mark events as completed.
 
 ## Technologies Used
-
-*   HTML
-*   CSS
 *   JavaScript
 *   React Native
 *   Firebase (Authentication and Data Storage)
+*   CSS
 *   Figma (For UI/UX Design)
 
 ## Installation
